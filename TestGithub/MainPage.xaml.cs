@@ -1,5 +1,3 @@
-using System.IO.Compression;
-
 namespace TestGithub
 {
     public partial class MainPage : ContentPage
