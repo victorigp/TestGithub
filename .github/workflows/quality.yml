@@ -7,7 +7,7 @@ on:
 jobs:
   analyze:
     name: Compilacion y Analisis de Seguridad
-    runs-on: windows-latest
+    runs-on: [self-hosted, windows]
     permissions:
       actions: read
       contents: read
@@ -19,15 +19,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Configurar .NET
+      - name: Configurar .NET (Sincronizado con global.json)
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.315' # Igual que global.json
-
-      - name: Instalar workload MAUI Android
-        run: dotnet workload install maui-android
+          global-json-file: global.json
 
       - name: Inicializar CodeQL
+        if: vars.ENABLE_CODEQL == 'true'
         uses: github/codeql-action/init@v4
         with:
           languages: csharp
@@ -36,5 +34,31 @@ jobs:
         run: dotnet build TestGithub.sln --configuration Release
 
       - name: Ejecutar Analisis CodeQL
-        if: always() # Sube los resultados de CodeQL aunque la compilacion falle
+        if: vars.ENABLE_CODEQL == 'true'
         uses: github/codeql-action/analyze@v4
+        with:
+          output: "../results"
+
+      - name: Comprobar Alertas de Seguridad CodeQL (Falla si hay vulnerabilidades)
+        if: vars.ENABLE_CODEQL == 'true'
+        shell: pwsh
+        run: |
+          $sarifFile = Resolve-Path "../results/csharp.sarif" -ErrorAction SilentlyContinue
+          if ($sarifFile -and (Test-Path $sarifFile)) {
+              $sarif = Get-Content $sarifFile -Raw | ConvertFrom-Json
+              $alerts = @()
+              foreach ($run in $sarif.runs) {
+                  if ($run.results) {
+                      $alerts += $run.results
+                  }
+              }
+              if ($alerts.Count -gt 0) {
+                  Write-Host "::error::CodeQL ha detectado $($alerts.Count) vulnerabilidad(es) de seguridad en el codigo."
+                  foreach ($alert in $alerts) {
+                      Write-Host "- [Regla: $($alert.ruleId)] $($alert.message.text)"
+                  }
+                  exit 1
+              } else {
+                  Write-Host "CodeQL: No se detectaron vulnerabilidades de seguridad."
+              }
+          }
