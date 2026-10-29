@@ -36,7 +36,7 @@ jobs:
 
       - name: Comprobar Alertas de Seguridad CodeQL (Falla si hay vulnerabilidades)
         if: vars.ENABLE_CODEQL == 'true'
-        shell: pwsh
+        shell: powershell
         run: |
           $sarifFile = Resolve-Path "../results/csharp.sarif" -ErrorAction SilentlyContinue
           if ($sarifFile -and (Test-Path $sarifFile)) {
