@@ -19,11 +19,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Configurar .NET (Sincronizado con global.json)
-        uses: actions/setup-dotnet@v4
-        with:
-          global-json-file: global.json
-
       - name: Inicializar CodeQL
         if: vars.ENABLE_CODEQL == 'true'
         uses: github/codeql-action/init@v4
