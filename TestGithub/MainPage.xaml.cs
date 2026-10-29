@@ -19,22 +19,9 @@ namespace TestGithub
                 ? $"Clicked {_count} time"
                 : $"Clicked {_count} times";
 
-            SemanticScreenReader.Announce(CounterBtn.Text);
-        }
+            var s = "ddd";
 
-        /// <summary>
-        /// Método de prueba para probar CodeQL en Github
-        /// </summary>
-        /// <param name="archivePath"></param>
-        /// <param name="targetDirectory"></param>
-        public static void ExtractZip(string archivePath, string targetDirectory)
-        {
-            using ZipArchive archive = ZipFile.OpenRead(archivePath);
-            foreach (ZipArchiveEntry entry in archive.Entries)
-            {
-                string destinationPath = Path.Combine(targetDirectory, entry.FullName);
-                entry.ExtractToFile(destinationPath);
-            }
+            SemanticScreenReader.Announce(CounterBtn.Text);
         }
     }
 }
