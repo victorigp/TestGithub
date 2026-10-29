@@ -19,8 +19,6 @@ namespace TestGithub
                 ? $"Clicked {_count} time"
                 : $"Clicked {_count} times";
 
-            var s = "ddd";
-
             SemanticScreenReader.Announce(CounterBtn.Text);
         }
     }
