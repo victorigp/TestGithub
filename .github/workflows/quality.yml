@@ -6,7 +6,7 @@ on:
 
 jobs:
   analyze:
-    name: Compilación y Análisis de Seguridad
+    name: Compilacion y Analisis de Seguridad
     runs-on: windows-latest
     permissions:
       actions: read
@@ -14,13 +14,13 @@ jobs:
       security-events: write
 
     steps:
-      - name: Checkout del código
-        uses: actions/checkout@v3
+      - name: Checkout del codigo
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Configurar .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.315' # Igual que global.json
 
@@ -31,10 +31,11 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: csharp
+          build-mode: manual
 
       - name: Compilar con Roslyn (SonarAnalyzer estricto)
-        run: dotnet build SIGAPEA_RF.sln --configuration Release
+        run: dotnet build TestGithub.sln --configuration Release
 
-      - name: Ejecutar Análisis CodeQL
-        if: always() # Sube los resultados de CodeQL aunque la compilación falle
+      - name: Ejecutar Analisis CodeQL
+        if: always() # Sube los resultados de CodeQL aunque la compilacion falle
         uses: github/codeql-action/analyze@v3
