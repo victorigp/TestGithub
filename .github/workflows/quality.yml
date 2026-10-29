@@ -28,14 +28,13 @@ jobs:
         run: dotnet workload install maui-android
 
       - name: Inicializar CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: csharp
-          build-mode: manual
 
       - name: Compilar con Roslyn (SonarAnalyzer estricto)
         run: dotnet build TestGithub.sln --configuration Release
 
       - name: Ejecutar Analisis CodeQL
         if: always() # Sube los resultados de CodeQL aunque la compilacion falle
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
