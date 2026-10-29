@@ -61,7 +61,7 @@ Para que el runner esté siempre disponible sin requerir sesiones de usuario abi
    * En GitHub: **Settings** → **Actions** → **Runners** → **New self-hosted runner**.
    * Seleccionar **Windows / x64**.
 
-2. **Descarga y despliegue** (ejemplo en `C:\actions-runner` o `E:\actions-runner`):
+2. **Descarga y despliegue** (ejemplo en `C:\actions-runner`):
    ```powershell
    mkdir C:\actions-runner
    cd C:\actions-runner
@@ -76,8 +76,7 @@ Para que el runner esté siempre disponible sin requerir sesiones de usuario abi
 
 3. **Configuración**:
    ```powershell
-   .\config.cmd --url git remote set-url origin https://github.com/Indra/SIGAPEA_RF.git
- --token <TOKEN_PROPORCIONADO>
+   .\config.cmd --url git remote set-url origin https://github.com/viglesias_indra/SIGAPEA_RF.git --token <TOKEN_PROPORCIONADO>
    ```
    * *Runner name*: Nombre del servidor (pulsar Enter para valor por defecto).
    * *Labels*: Aceptar por defecto (`self-hosted,Windows,X64`).
