@@ -40,4 +40,19 @@ _disableAffix: true
   }
 </style>
 
-<iframe class="coverage-frame" src="coverage/index.html" frameborder="0"></iframe>
+<iframe id="coverage-frame" class="coverage-frame" frameborder="0"></iframe>
+
+<script>
+  // Cache-busting automático: añade un parámetro único de tiempo para forzar al navegador
+  // a descargar siempre el reporte más reciente sin recurrir a la caché local de disco.
+  (function() {
+    var frame = document.getElementById('coverage-frame');
+    if (frame) {
+      frame.src = 'coverage/index.html?t=' + Date.now();
+    }
+  })();
+</script>
+
+<noscript>
+  <iframe class="coverage-frame" src="coverage/index.html" frameborder="0"></iframe>
+</noscript>
