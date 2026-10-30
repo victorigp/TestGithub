@@ -26,6 +26,14 @@ jobs:
       - name: Checkout del repositorio
         uses: actions/checkout@v4
 
+      - name: Configurar Git Bash y Tar en PATH (para empaquetado de Pages)
+        shell: powershell
+        run: |
+          $gitPath = (Get-Command git.exe).Source
+          $gitRoot = Split-Path (Split-Path $gitPath -Parent) -Parent
+          "$gitRoot\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          "$gitRoot\usr\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
       - name: Restaurar herramientas locales (.NET Tools)
         run: dotnet tool restore
 
@@ -40,7 +48,7 @@ jobs:
   deploy:
     name: Desplegar en GitHub Pages
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, windows]
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -48,4 +56,3 @@ jobs:
       - name: Desplegar sitio
         id: deployment
         uses: actions/deploy-pages@v4
-

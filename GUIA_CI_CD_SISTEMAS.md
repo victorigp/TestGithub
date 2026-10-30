@@ -52,6 +52,21 @@ Antes de arrancar el runner, la máquina debe tener instaladas las siguientes he
 * El pipeline utiliza **Windows PowerShell 5.1** (incluido por defecto en Windows) o PowerShell 7 (`pwsh`).
 * El script de comprobación de calidad está parametrizado con `shell: powershell` para máxima compatibilidad con cualquier instalación estándar de Windows.
 
+### 3.4. Git for Windows (64-bit)
+* **Imprescindible**:
+  1. Es la herramienta esencial que el runner utiliza para clonar el repositorio (`actions/checkout@v4`).
+  2. **Proporciona los binarios Unix estándar `bash.exe` y `tar.exe`**: Las GitHub Actions oficiales (como `actions/upload-pages-artifact` para DocFX) requieren `bash` y `tar` para empaquetar artefactos web. Al tener Git for Windows, el pipeline utiliza estos binarios directamente sin necesidad de instalar WSL (*Windows Subsystem for Linux*) ni componentes de Linux adicionales en el servidor.
+* **Instalación**:
+  ```powershell
+  winget install --id Git.Git -e --source winget
+  ```
+  *(O descargando el instalador oficial de https://git-scm.com/)*.
+* **Comprobación**:
+  ```powershell
+  git --version
+  # Debe devolver git version 2.x o superior
+  ```
+
 ---
 
 ## 4. Instalación del GitHub Actions Runner como Servicio de Windows
@@ -77,7 +92,7 @@ Para que el runner esté siempre disponible sin requerir sesiones de usuario abi
 
 3. **Configuración**:
    ```powershell
-   .\config.cmd --url git remote set-url origin https://github.com/viglesias_indra/SIGAPEA_RF.git --token <TOKEN_PROPORCIONADO>
+   .\config.cmd --url https://github.com/viglesias_indra/SIGAPEA_RF.git --token <TOKEN_PROPORCIONADO>
    ```
    * *Runner name*: Nombre del servidor (pulsar Enter para valor por defecto).
    * *Labels*: Aceptar por defecto (`self-hosted,Windows,X64`).
