@@ -3,14 +3,17 @@
     <!-- 1. Forzar a que el compilador ejecute las reglas del .editorconfig en cada build -->
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 
-	<!-- 2. Nivel de análisis recomendado por .NET (sin AllEnabledByDefault) -->
+    <!-- 2. Nivel de análisis recomendado por .NET (sin AllEnabledByDefault) -->
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     
     <!-- 3. Ignorar el código autogenerado por los compiladores de XAML -->
     <GeneratedCodeAnalysisFlags>None</GeneratedCodeAnalysisFlags>
-	
-	<!-- 4. Cero tolerancia: cualquier warning de código o paquete rompe la compilación -->
+
+    <!-- 4. Cero tolerancia: cualquier warning de código o paquete rompe la compilación -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!-- 5. Exportar análisis de calidad en formato SARIF 2.1 para GitHub Code Scanning -->
+    <ErrorLog>$(MSBuildThisFileDirectory)roslyn.sarif,version=2.1</ErrorLog>
   </PropertyGroup>
   
   <ItemGroup>

@@ -34,6 +34,7 @@ bld/
 [Ll]ogs/
 [Bb]uilds/
 *.sarif
+.project-actions.json
 
 # Ignore reports of test results created by Allure framework	
 **/allure-results/

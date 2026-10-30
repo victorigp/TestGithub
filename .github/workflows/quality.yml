@@ -26,11 +26,11 @@ jobs:
           languages: csharp
 
       - name: Compilar con Roslyn (SonarAnalyzer estricto) y generar SARIF
-        run: dotnet build TestGithub.sln --configuration Release -p:ErrorLog="roslyn.sarif,version=2.1"
+        run: dotnet build TestGithub.sln --configuration Release
 
       - name: Subir Alertas de Calidad Roslyn a GitHub Security
         uses: github/codeql-action/upload-sarif@v4
-        if: always()
+        if: always() && hashFiles('roslyn.sarif') != ''
         with:
           sarif_file: roslyn.sarif
           category: roslyn-quality
