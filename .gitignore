@@ -379,3 +379,4 @@ FodyWeavers.xsd
 # DocFX generated website
 **/_site/
 **/.site/
+docs/coverage/

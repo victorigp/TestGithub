@@ -3,6 +3,11 @@ name: Calidad y Seguridad (CodeQL + Roslyn)
 on:
   push:
     branches: [ "develop", "release", "master" ]
+    paths-ignore:
+      - "docs/**"
+      - "*.md"
+      - "**/*.md"
+      - ".github/workflows/docs.yml"
 
 jobs:
   analyze:
@@ -34,6 +39,29 @@ jobs:
         with:
           sarif_file: roslyn.sarif
           category: roslyn-quality
+
+      - name: Restaurar herramientas locales (.NET Tools)
+        run: dotnet tool restore
+
+      - name: Ejecutar pruebas unitarias con Coverlet
+        run: |
+          dotnet test TestGithub.Test/TestGithub.Test.csproj --configuration Release --collect:"XPlat Code Coverage" --results-directory ./TestResults --logger "console;verbosity=normal"
+
+      - name: Generar Reporte de Cobertura con ReportGenerator
+        if: always() && hashFiles('TestResults/**/coverage.cobertura.xml') != ''
+        shell: powershell
+        run: |
+          dotnet reportgenerator "-reports:TestResults/**/coverage.cobertura.xml" "-targetdir:TestResults/CoverageReport" "-reporttypes:Html;HtmlSummary;MarkdownSummaryGithub" "-title:TestGithub - Reporte de Cobertura"
+          if (Test-Path "TestResults/CoverageReport/SummaryGithub.md") {
+              Get-Content "TestResults/CoverageReport/SummaryGithub.md" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          }
+
+      - name: Subir Reporte de Cobertura como Artefacto
+        uses: actions/upload-artifact@v4
+        if: always() && hashFiles('TestResults/CoverageReport/**') != ''
+        with:
+          name: Reporte-Cobertura-TestGithub
+          path: TestResults/CoverageReport
 
       - name: Ejecutar Analisis CodeQL
         if: vars.ENABLE_CODEQL == 'true'

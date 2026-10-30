@@ -8,6 +8,13 @@
         ]
       }
     ],
+    "resource": [
+      {
+        "files": [
+          "coverage/**"
+        ]
+      }
+    ],
     "dest": "_site",
     "globalMetadata": {
       "_appName": "TestGithub Docs",
@@ -15,4 +22,3 @@
     }
   }
 }
-

@@ -67,6 +67,12 @@ Antes de arrancar el runner, la máquina debe tener instaladas las siguientes he
   # Debe devolver git version 2.x o superior
   ```
 
+### 3.5. Herramientas de Cobertura y Documentación (DocFX, Coverlet y ReportGenerator)
+* **Sin instalación administrativa previa**:
+  * **DocFX** y **ReportGenerator**: Se gestionan como herramientas locales del repositorio a través del manifiesto `.config/dotnet-tools.json`. El runner las restaura de forma automática y aislada en cada pipeline mediante `dotnet tool restore`.
+  * **Coverlet**: Se gestiona como paquete NuGet estándar (`coverlet.collector`) incluido en los proyectos de test (`*.Test.csproj`).
+* **Mantenimiento**: El equipo de Sistemas **no necesita instalar ni actualizar estas herramientas a nivel de sistema operativo**. Solo debe garantizar la conectividad con el repositorio de paquetes NuGet (`api.nuget.org` o el proxy/Nexus interno corporativo).
+
 ---
 
 ## 4. Instalación del GitHub Actions Runner como Servicio de Windows

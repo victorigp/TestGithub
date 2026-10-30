@@ -37,7 +37,15 @@ jobs:
       - name: Restaurar herramientas locales (.NET Tools)
         run: dotnet tool restore
 
-      - name: Compilar sitio web con DocFX
+      - name: Ejecutar pruebas unitarias y recolectar cobertura (Coverlet)
+        run: |
+          dotnet test TestGithub.Test/TestGithub.Test.csproj --configuration Release --collect:"XPlat Code Coverage" --results-directory ./TestResults
+
+      - name: Generar reporte de cobertura (ReportGenerator)
+        run: |
+          dotnet reportgenerator "-reports:TestResults/**/coverage.cobertura.xml" "-targetdir:docs/coverage" "-reporttypes:Html;HtmlSummary" "-title:TestGithub - Cobertura de Código"
+
+      - name: Compilar sitio web con DocFX (incluyendo cobertura)
         run: dotnet docfx docs/docfx.json
 
       - name: Subir artefacto para GitHub Pages
