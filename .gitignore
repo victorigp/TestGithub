@@ -33,6 +33,7 @@ bld/
 [Ll]og/
 [Ll]ogs/
 [Bb]uilds/
+*.sarif
 
 # Ignore reports of test results created by Allure framework	
 **/allure-results/
