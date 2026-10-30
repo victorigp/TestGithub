@@ -7,12 +7,17 @@ on:
       - "docs/**"
       - ".config/dotnet-tools.json"
       - ".github/workflows/docs.yml"
+  workflow_run:
+    workflows: ["Calidad y Seguridad (CodeQL + Roslyn)"]
+    types: [completed]
+    branches: ["master"]
   workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
+  actions: read
 
 concurrency:
   group: "pages"
@@ -21,6 +26,7 @@ concurrency:
 jobs:
   build:
     name: Compilar Documentacion
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: [self-hosted, windows]
     steps:
       - name: Checkout del repositorio
@@ -34,16 +40,26 @@ jobs:
           "$gitRoot\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           "$gitRoot\usr\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
+      - name: Descargar reporte de cobertura generado por Quality
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: Reporte-Cobertura-TestGithub
+          path: docs/coverage
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Asegurar existencia de carpeta de cobertura para DocFX
+        shell: powershell
+        run: |
+          if (-not (Test-Path "docs/coverage/index.html")) {
+              New-Item -ItemType Directory -Path "docs/coverage" -Force | Out-Null
+              Set-Content -Path "docs/coverage/index.html" -Value "<html><head><meta charset='utf-8'><title>Cobertura</title><style>body{font-family:sans-serif;text-align:center;padding:50px;color:#8b949e;background:#0d1117;}</style></head><body><h2>Reporte de Cobertura</h2><p>El reporte de cobertura se generará automáticamente en el próximo pase del flujo de Calidad y Pruebas.</p></body></html>" -Encoding utf8
+          }
+
       - name: Restaurar herramientas locales (.NET Tools)
         run: dotnet tool restore
-
-      - name: Ejecutar pruebas unitarias y recolectar cobertura (Coverlet)
-        run: |
-          dotnet test TestGithub.Test/TestGithub.Test.csproj --configuration Release --collect:"XPlat Code Coverage" --results-directory ./TestResults
-
-      - name: Generar reporte de cobertura (ReportGenerator)
-        run: |
-          dotnet reportgenerator "-reports:TestResults/**/coverage.cobertura.xml" "-targetdir:docs/coverage" "-reporttypes:Html;HtmlSummary" "-title:TestGithub - Cobertura de Código"
 
       - name: Compilar sitio web con DocFX (incluyendo cobertura)
         run: dotnet docfx docs/docfx.json

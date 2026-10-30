@@ -59,7 +59,7 @@ jobs:
         if: always() && hashFiles('TestResults/**/coverage.cobertura.xml') != ''
         shell: powershell
         run: |
-          dotnet reportgenerator "-reports:TestResults/**/coverage.cobertura.xml" "-targetdir:TestResults/CoverageReport" "-reporttypes:Html;HtmlSummary;MarkdownSummaryGithub" "-title:TestGithub - Reporte de Cobertura"
+          dotnet reportgenerator "-reports:TestResults/**/coverage.cobertura.xml" "-targetdir:TestResults/CoverageReport" "-reporttypes:Html;HtmlSummary;MarkdownSummaryGithub" "-title:TestGithub - Cobertura de Codigo"
           if (Test-Path "TestResults/CoverageReport/SummaryGithub.md") {
               Get-Content "TestResults/CoverageReport/SummaryGithub.md" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
           }
