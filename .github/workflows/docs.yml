@@ -1,0 +1,51 @@
+name: Publicar Documentacion Tecnica (DocFX)
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - "docs/**"
+      - ".config/dotnet-tools.json"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Compilar Documentacion
+    runs-on: [self-hosted, windows]
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Restaurar herramientas locales (.NET Tools)
+        run: dotnet tool restore
+
+      - name: Compilar sitio web con DocFX
+        run: dotnet docfx docs/docfx.json
+
+      - name: Subir artefacto para GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'docs/_site'
+
+  deploy:
+    name: Desplegar en GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Desplegar sitio
+        id: deployment
+        uses: actions/deploy-pages@v4
+

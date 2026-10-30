@@ -1,0 +1,18 @@
+{
+  "build": {
+    "content": [
+      {
+        "files": [
+          "**.md",
+          "toc.yml"
+        ]
+      }
+    ],
+    "dest": "_site",
+    "globalMetadata": {
+      "_appName": "TestGithub Docs",
+      "_appTitle": "TestGithub - Documentación Técnica"
+    }
+  }
+}
+

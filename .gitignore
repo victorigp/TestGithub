@@ -375,3 +375,7 @@ FodyWeavers.xsd
 
 # Archivos locales
 /SIGAPEA_RF.Documents/_Generar Docs Indra.lnk
+
+# DocFX generated website
+**/_site/
+**/.site/

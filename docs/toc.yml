@@ -1,0 +1,7 @@
+- name: Inicio
+  href: index.md
+- name: Arquitectura y Calidad
+  href: arquitectura.md
+- name: Guía de Uso y CI/CD
+  href: guia-uso.md
+

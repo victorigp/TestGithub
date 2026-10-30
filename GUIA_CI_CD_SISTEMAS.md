@@ -89,3 +89,25 @@ Para que el runner esté siempre disponible sin requerir sesiones de usuario abi
    .\svc.cmd start
    ```
    *(El servicio arrancará automáticamente con el sistema bajo el nombre `actions.runner.<org-repo>.<runner-name>`)*.
+
+
+---
+
+## 5. Permisos Requeridos en GitHub (Configuración del Repositorio y Organización)
+
+Para que los workflows de CI/CD funcionen correctamente sin bloqueos de seguridad corporativos, el administrador de sistemas/DevOps debe verificar los siguientes permisos:
+
+### 5.1. Permisos de Workflow (`Settings > Actions > General > Workflow permissions`)
+* Asegurarse de que esté seleccionado **"Read and write permissions"** (o en su defecto, permitir que los workflows definan sus propios alcances mediante la directiva `permissions:`).
+
+### 5.2. Permisos específicos utilizados por los pipelines
+* **Calidad y Seguridad (`quality.yml`):**
+  * `security-events: write`: Imprescindible para que el runner pueda cargar los informes SARIF de Roslyn y CodeQL a la pestaña **Security → Code scanning alerts**.
+  * `actions: read` y `contents: read`: Para descargar el código y consultar el estado del runner.
+* **Documentación Técnica con DocFX (`docs.yml`):**
+  * `pages: write`: Requerido para empaquetar y desplegar el portal web generado en **GitHub Pages**.
+  * `id-token: write`: Requerido por GitHub para autenticar de forma segura el despliegue del entorno de Pages.
+
+### 5.3. Habilitación de GitHub Pages
+* En la organización de GitHub (Indra / Navantia), asegurarse de que la directiva de seguridad corporativa permita el uso de **GitHub Pages** para repositorios privados/internos.
+* En el repositorio: **Settings → Pages → Build and deployment → Source**: Seleccionar **`GitHub Actions`**.
