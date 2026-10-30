@@ -5,5 +5,5 @@
 - name: Guía de Uso y CI/CD
   href: guia-uso.md
 - name: Cobertura de Código
-  href: coverage/index.html
+  href: cobertura.md
 

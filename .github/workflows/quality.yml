@@ -24,6 +24,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Redirigir temporales a unidad E con espacio suficiente
+        shell: powershell
+        run: |
+          $tempDir = "E:\actions-runner\_temp"
+          if (-not (Test-Path $tempDir)) { New-Item -ItemType Directory -Path $tempDir -Force | Out-Null }
+          "TEMP=$tempDir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "TMP=$tempDir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
       - name: Inicializar CodeQL
         if: vars.ENABLE_CODEQL == 'true'
         uses: github/codeql-action/init@v4
