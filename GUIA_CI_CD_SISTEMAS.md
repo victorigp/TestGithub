@@ -90,15 +90,15 @@ Para que el runner self-hosted pueda ejecutar las pruebas funcionales de interfa
 
 #### 3.7.1. Java Runtime (JDK / JBR)
 * Requerido por el motor de **Allure CLI** y el SDK de Android.
-* Ubicación recomendada: `E:\Android Studio\jbr` (o `C:\Program Files\Java\jdk-xx`).
+* Ubicación recomendada: `C:\Program Files\Java\jdk-xx`.
 * Variable de entorno del sistema requerida:
-  * `JAVA_HOME = E:\Android Studio\jbr` (agregando `%JAVA_HOME%\bin` al `PATH`).
+  * `JAVA_HOME = C:\Program Files\Java\jdk-xx` (agregando `%JAVA_HOME%\bin` al `PATH`).
 
 #### 3.7.2. Android SDK y Herramientas de Plataforma
 * Requiere el Android SDK con los paquetes `cmdline-tools`, `platform-tools` (`adb.exe`), `build-tools` y `emulator` (`emulator.exe`).
 * Variables de entorno requeridas:
-  * `ANDROID_HOME = E:\Android_SDK`
-  * `ANDROID_SDK_ROOT = E:\Android_SDK`
+  * `ANDROID_HOME = C:\Program Files\Android_SDK`
+  * `ANDROID_SDK_ROOT = C:\Program Files\Android_SDK`
   * Añadir al `PATH`: `%ANDROID_HOME%\platform-tools` y `%ANDROID_HOME%\emulator`.
 
 #### 3.7.3. Especificaciones del Emulador Android (AVD: `seypos_scanmax_22d`)
