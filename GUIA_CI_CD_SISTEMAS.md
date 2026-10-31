@@ -84,12 +84,6 @@ Antes de arrancar el runner, la máquina debe tener instaladas las siguientes he
   * **Coverlet**: Se gestiona como paquete NuGet estándar (`coverlet.collector`) incluido en los proyectos de test (`*.Test.csproj`).
 * **Mantenimiento**: El equipo de Sistemas **no necesita instalar ni actualizar estas herramientas a nivel de sistema operativo**. Solo debe garantizar la conectividad con el repositorio de paquetes NuGet (`api.nuget.org` o el proxy/Nexus interno corporativo).
 
-### 3.7. Gestión del Espacio en Disco y Directorio Temporal (`%TEMP%`)
-* **IMPORTANTE (Compilación AOT de MAUI Android)**:
-  * El compilador AOT de Mono (`MonoAOTCompiler`) genera entre **2 y 5 GB de archivos temporales** durante la optimización y empaquetado de ensamblados en configuración *Release*.
-  * Si la unidad de sistema `C:\` tiene poco espacio libre o cuotas de usuario reducidas, la compilación fallará con error `System.IO.IOException: Espacio en disco insuficiente`.
-  * **Recomendación para Sistemas**: Asegurar que la unidad donde se ubique el runner disponga de al menos **30-50 GB libres**, y si la unidad `C:\` está ajustada, asignar las variables de entorno de temporales (`TEMP` y `TMP`) en una unidad con espacio suficiente (por ejemplo `E:\actions-runner\_temp`).
-
 ---
 
 ## 4. Instalación del GitHub Actions Runner como Servicio de Windows
