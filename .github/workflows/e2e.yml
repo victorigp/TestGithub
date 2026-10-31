@@ -1,0 +1,145 @@
+name: Pruebas E2E Android (Appium + Allure)
+
+on:
+  push:
+    branches: [ "develop", "release", "master" ]
+    paths-ignore:
+      - "docs/**"
+      - "*.md"
+      - "**/*.md"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+jobs:
+  e2e-tests:
+    name: Ejecucion E2E en Emulador Android
+    runs-on: [self-hosted, windows]
+    permissions:
+      contents: read
+      actions: read
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Redirigir temporales a unidad E con espacio suficiente
+        shell: powershell
+        run: |
+          $tempDir = "E:\actions-runner\_temp"
+          if (-not (Test-Path $tempDir)) { New-Item -ItemType Directory -Path $tempDir -Force | Out-Null }
+          "TEMP=$tempDir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "TMP=$tempDir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Configurar variables de entorno Android, Java y herramientas
+        shell: powershell
+        run: |
+          $androidSdk = "E:\Android_SDK"
+          $javaHome = "E:\Android Studio\jbr"
+          
+          "$androidSdk\platform-tools" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          "$androidSdk\emulator" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          "C:\nvm4w\nodejs" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          "C:\Users\Victor\scoop\shims" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          
+          "ANDROID_HOME=$androidSdk" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "ANDROID_SDK_ROOT=$androidSdk" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "JAVA_HOME=$javaHome" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Comprobar o Iniciar Emulador Android (seypos_scanmax_22d)
+        shell: powershell
+        run: |
+          $devices = & "E:\Android_SDK\platform-tools\adb.exe" devices | Select-String "device$"
+          if (-not $devices) {
+              Write-Host "Iniciando emulador Android seypos_scanmax_22d..."
+              Start-Process -FilePath "E:\Android_SDK\emulator\emulator.exe" -ArgumentList "-avd", "seypos_scanmax_22d", "-no-boot-anim", "-no-audio" -WindowStyle Minimized
+              Write-Host "Esperando conexion adb..."
+              & "E:\Android_SDK\platform-tools\adb.exe" wait-for-device
+              
+              $booted = $false
+              for ($i = 0; $i -lt 50; $i++) {
+                  $status = (& "E:\Android_SDK\platform-tools\adb.exe" shell getprop sys.boot_completed 2>$null)
+                  if ($status -and $status.Trim() -eq "1") {
+                      $booted = $true
+                      Write-Host "Emulador Android listo y en ejecucion."
+                      break
+                  }
+                  Start-Sleep -Seconds 2
+              }
+              if (-not $booted) {
+                  Write-Host "Aviso: sys.boot_completed no reporto 1 a tiempo; continuando..."
+              }
+          } else {
+              Write-Host "Emulador Android ya conectado y disponible."
+          }
+
+      - name: Iniciar Servidor Appium en segundo plano (puerto 4723)
+        shell: powershell
+        run: |
+          $online = $false
+          try {
+              $status = Invoke-RestMethod -Uri "http://127.0.0.1:4723/status" -TimeoutSec 2 -ErrorAction Stop
+              if ($status.value.ready -eq $true) { $online = $true }
+          } catch { }
+
+          if (-not $online) {
+              Write-Host "Iniciando Appium en puerto 4723..."
+              $p = Start-Process -FilePath "cmd.exe" -ArgumentList "/c appium --port 4723" -PassThru -WindowStyle Minimized
+              "APPIUM_PID=$($p.Id)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+              
+              for ($i = 0; $i -lt 25; $i++) {
+                  try {
+                      Start-Sleep -Seconds 1
+                      $status = Invoke-RestMethod -Uri "http://127.0.0.1:4723/status" -TimeoutSec 2 -ErrorAction Stop
+                      if ($status.value.ready -eq $true) {
+                          Write-Host "Servidor Appium operativo."
+                          break
+                      }
+                  } catch { }
+              }
+          } else {
+              Write-Host "Servidor Appium ya activo."
+          }
+
+      - name: Compilar aplicacion Android (.NET MAUI) en Release
+        run: |
+          dotnet build TestGithub/TestGithub.csproj -f net9.0-android --configuration Release
+
+      - name: Ejecutar pruebas E2E con NUnit
+        run: |
+          dotnet test TestGithub.E2E/TestGithub.E2E.csproj --configuration Release --logger "console;verbosity=normal"
+
+      - name: Generar Reporte Visual Allure
+        if: always()
+        shell: powershell
+        run: |
+          $resultsDir = Resolve-Path "TestGithub.E2E/bin/Release/net9.0/allure-results" -ErrorAction SilentlyContinue
+          if (-not $resultsDir) {
+              $resultsDir = Resolve-Path "TestGithub.E2E/bin/Debug/net9.0/allure-results" -ErrorAction SilentlyContinue
+          }
+          if (-not $resultsDir) {
+              $resultsDir = Resolve-Path "**/allure-results" -ErrorAction SilentlyContinue | Select-Object -First 1
+          }
+
+          if ($resultsDir -and (Test-Path $resultsDir)) {
+              Write-Host "Generando Allure HTML desde $resultsDir..."
+              cmd.exe /c "allure generate `"$resultsDir`" -o TestGithub.E2E/allure-report --clean"
+          } else {
+              Write-Host "No se encontraron carpetas allure-results."
+          }
+
+      - name: Subir Reporte Allure como Artefacto
+        uses: actions/upload-artifact@v4
+        if: always() && hashFiles('TestGithub.E2E/allure-report/**') != ''
+        with:
+          name: Reporte-Allure-TestGithub
+          path: TestGithub.E2E/allure-report
+
+      - name: Detener Appium si fue iniciado por este flujo
+        if: always()
+        shell: powershell
+        run: |
+          if ($env:APPIUM_PID) {
+              Write-Host "Deteniendo proceso Appium PID $env:APPIUM_PID..."
+              Stop-Process -Id $env:APPIUM_PID -Force -ErrorAction SilentlyContinue
+          }
+

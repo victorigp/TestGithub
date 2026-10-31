@@ -11,14 +11,19 @@
     "resource": [
       {
         "files": [
-          "coverage/**"
+          "coverage/**",
+          "allure-report/**"
         ]
       }
     ],
     "dest": "_site",
+    "postProcessors": [
+      "ExtractSearchIndex"
+    ],
     "globalMetadata": {
       "_appName": "TestGithub Docs",
-      "_appTitle": "TestGithub - Documentación Técnica"
+      "_appTitle": "TestGithub - Documentación Técnica",
+      "_enableSearch": true
     }
   }
 }

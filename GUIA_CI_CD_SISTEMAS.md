@@ -84,6 +84,25 @@ Antes de arrancar el runner, la máquina debe tener instaladas las siguientes he
   * **Coverlet**: Se gestiona como paquete NuGet estándar (`coverlet.collector`) incluido en los proyectos de test (`*.Test.csproj`).
 * **Mantenimiento**: El equipo de Sistemas **no necesita instalar ni actualizar estas herramientas a nivel de sistema operativo**. Solo debe garantizar la conectividad con el repositorio de paquetes NuGet (`api.nuget.org` o el proxy/Nexus interno corporativo).
 
+### 3.7. Herramientas para Pruebas E2E Android (Appium, Allure CLI y Emulador Android)
+* **Android SDK y Emulador**:
+  * Requiere el Android SDK (`platform-tools` con `adb.exe` y `emulator` con `emulator.exe`).
+  * Dispositivo virtual Android (AVD) configurado (por defecto: `seypos_scanmax_22d`).
+  * Variables de entorno: `ANDROID_HOME` y `ANDROID_SDK_ROOT` apuntando a la ruta del SDK (ej. `E:\Android_SDK`).
+* **Java Runtime**:
+  * Requerido por el motor de Allure CLI y el SDK de Android.
+  * Variable de entorno `JAVA_HOME` apuntando al JRE/JDK (ej. `E:\Android Studio\jbr`).
+* **Appium Server**:
+  * Instalado globalmente mediante Node.js: `npm install -g appium`.
+  * Controlador Android UiAutomator2 instalado: `appium driver install uiautomator2`.
+* **Allure CLI**:
+  * CLI para compilar los reportes visuales HTML de Allure a partir de los resultados JSON:
+    ```powershell
+    scoop install allure
+    # o mediante winget:
+    winget install Allure.Allure
+    ```
+
 ---
 
 ## 4. Instalación del GitHub Actions Runner como Servicio de Windows
@@ -136,28 +155,28 @@ Para que los workflows de CI/CD funcionen correctamente sin bloqueos de segurida
 * **Calidad y Seguridad (`quality.yml`):**
   * `security-events: write`: Imprescindible para que el runner pueda cargar los informes SARIF de Roslyn y CodeQL a la pestaña **Security → Code scanning alerts**.
   * `actions: read` y `contents: read`: Para descargar el código y consultar el estado del runner.
+* **Pruebas E2E Android (`e2e.yml`):**
+  * `actions: read` y `contents: read`: Para descargar el repositorio y subir los artefactos del reporte Allure (`Reporte-Allure-TestGithub`).
 * **Documentación Técnica con DocFX (`docs.yml`):**
   * `pages: write`: Requerido para empaquetar y desplegar el portal web generado en **GitHub Pages**.
   * `id-token: write`: Requerido por GitHub para autenticar de forma segura el despliegue del entorno de Pages.
-  * `actions: read`: Necesario para consultar y descargar el artefacto del reporte de cobertura generado por el flujo de calidad (`quality.yml`).
+  * `actions: read`: Necesario para consultar y descargar los artefactos de cobertura (`quality.yml`) y pruebas E2E Allure (`e2e.yml`).
   * `contents: read`: Para descargar el código y la documentación del repositorio.
 
 ### 5.3. Habilitación de GitHub Pages
 * En la organización de GitHub (Indra / Navantia), asegurarse de que la directiva de seguridad corporativa permita el uso de **GitHub Pages** para repositorios privados/internos.
 * En el repositorio: **Settings → Pages → Build and deployment → Source**: Seleccionar **`GitHub Actions`**.
 
----
+### 5.4. Variable de Configuración para CodeQL (`ENABLE_CODEQL`)
+Para controlar de forma dinámica la ejecución del análisis de vulnerabilidades y seguridad avanzada de GitHub (CodeQL):
 
-## 6. Arquitectura Desacoplada de Pipelines (Calidad vs Documentación)
+* **Ubicación en GitHub**: **Settings → Secrets and variables → Actions → pestaña Variables → New repository variable**.
+  * **Nombre**: `ENABLE_CODEQL`
+  * **Valor**: `true`
 
-Para garantizar la máxima velocidad, eficiencia en el uso de recursos y aislamiento de fallos:
-
-1. **`quality.yml` (Pipeline de Pruebas y Auditoría):**
-   * Se ejecuta en ramas de integración (`develop`, `release`, `master`) ante cambios en el código C#.
-   * Ejecuta la suite de pruebas unitarias con **Coverlet** y genera el reporte visual interactivo con **ReportGenerator**.
-   * Publica el resumen de porcentajes en `$GITHUB_STEP_SUMMARY` y guarda el reporte completo como artefacto descargable (`Reporte-Cobertura-*`).
-
-2. **`docs.yml` (Pipeline de Publicación en GitHub Pages):**
-   * Se ejecuta ante cambios en `docs/**` o **automáticamente al completarse con éxito `quality.yml`** en la rama principal (`workflow_run`).
-   * No recompila C# ni pasa tests: se limita a descargar el último artefacto de cobertura generado y compilar el sitio estático con **DocFX**.
-   * Esto evita que un fallo en la documentación bloquee la integración de código, y garantiza que cambios documentales se publiquen en segundos sin reejecutar toda la suite de pruebas.
+> [!NOTE]
+> **Diferencia entre entornos Indra vs Cliente Final (Navantia):**
+> * **Entorno Indra**: **NO es necesario crear esta variable** (o se debe configurar en `false`). La organización interna de Indra no dispone de licencias de *GitHub Advanced Security (GHAS)* para repositorios privados, por lo que CodeQL está deshabilitado para evitar errores de licenciamiento.
+> * **Entorno Cliente Final (Navantia)**: **SÍ es necesario crearla con valor `true`**, ya que el cliente dispone del licenciamiento corporativo de CodeQL.
+> 
+> Si la variable no existe o tiene un valor distinto de `true`, el pipeline de calidad (`quality.yml`) omite los pasos de CodeQL de forma automática y transparente sin interrumpir la compilación ni los tests.

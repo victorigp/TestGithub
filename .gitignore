@@ -127,6 +127,12 @@ ipch/
 
 # Visual Studio Trace Files
 *.e2e
+!TestGithub.E2E/
+!TestGithub.E2E/**
+TestGithub.E2E/[Bb]in/
+TestGithub.E2E/[Oo]bj/
+TestGithub.E2E/allure-results/
+TestGithub.E2E/allure-report/
 
 # TFS 2012 Local Workspace
 $tf/
@@ -380,3 +386,4 @@ FodyWeavers.xsd
 **/_site/
 **/.site/
 docs/coverage/
+docs/allure-report/

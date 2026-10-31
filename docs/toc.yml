@@ -6,4 +6,5 @@
   href: guia-uso.md
 - name: Cobertura de Código
   href: cobertura.md
-
+- name: Pruebas E2E (Allure)
+  href: e2e-allure.md

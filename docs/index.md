@@ -10,6 +10,8 @@ Este sitio ha sido generado automáticamente utilizando **DocFX** a partir de ar
 
 * [Arquitectura y Calidad](arquitectura.md): Estructura del proyecto .NET MAUI, reglas de análisis estático (Roslyn + SonarAnalyzer), exportación SARIF y CodeQL.
 * [Guía de Uso y CI/CD](guia-uso.md): Instrucciones de compilación local, ejecución del runner self-hosted y flujos automatizados de GitHub Actions.
+* [Cobertura de Código](cobertura.md): Reporte interactivo de cobertura generado con ReportGenerator y Coverlet.
+* [Pruebas E2E (Allure)](e2e-allure.md): Informe visual de pruebas funcionales automatizadas en emulador Android con Appium y Allure.
 
 ---
 

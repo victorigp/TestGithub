@@ -1,0 +1,7 @@
+{
+  "allure": {
+    "directory": "allure-results",
+    "title": "Reporte de Pruebas E2E - TestGithub MAUI Android"
+  }
+}
+

@@ -41,5 +41,17 @@ El repositorio cuenta con un runner self-hosted para compilaciones locales de Wi
 * **Iniciar Runner**: Utiliza el botón **`▷ Runner`** de la barra de estado de Antigravity (o ejecuta `E:\actions-runner\run.cmd`).
 * **Pipelines activos**:
   * **Calidad y Seguridad (`quality.yml`)**: Valida compilación, Roslyn SARIF y CodeQL ante cada push.
-  * **Publicación de Docs (`docs.yml`)**: Compila y publica automáticamente este portal en **GitHub Pages**.
+  * **Pruebas E2E Android (`e2e.yml`)**: Ejecuta pruebas de integración en el emulador Android, generando artefactos con Allure.
+  * **Publicación de Docs (`docs.yml`)**: Compila y publica automáticamente este portal en **GitHub Pages** integrando Cobertura y Allure.
+
+---
+
+## 4. Ejecución de Pruebas E2E Locales (Appium + Allure)
+
+Para ejecutar la batería de pruebas end-to-end de forma automatizada en local:
+
+```powershell
+# Ejecuta el script automatizado (inicia emulador, Appium, compila la app y lanza Allure)
+.\tools\run-e2e.ps1
+```
 

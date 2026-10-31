@@ -8,7 +8,7 @@ on:
       - ".config/dotnet-tools.json"
       - ".github/workflows/docs.yml"
   workflow_run:
-    workflows: ["Calidad y Seguridad (CodeQL + Roslyn)"]
+    workflows: ["Calidad y Seguridad (CodeQL + Roslyn)", "Pruebas E2E Android (Appium + Allure)"]
     types: [completed]
     branches: ["master"]
   workflow_dispatch:
@@ -41,7 +41,7 @@ jobs:
           "$gitRoot\usr\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Descargar reporte de cobertura generado por Quality (workflow_run)
-        if: github.event_name == 'workflow_run'
+        if: github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Calidad y Seguridad (CodeQL + Roslyn)'
         uses: actions/download-artifact@v4
         continue-on-error: true
         with:
@@ -50,7 +50,17 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Descargar reporte de cobertura (fallback para push o ejecucion manual)
+      - name: Descargar reporte Allure generado por E2E (workflow_run)
+        if: github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Pruebas E2E Android (Appium + Allure)'
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: Reporte-Allure-TestGithub
+          path: docs/allure-report
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Descargar reportes previos (fallback para push o ejecucion manual)
         if: github.event_name != 'workflow_run'
         shell: powershell
         continue-on-error: true
@@ -58,6 +68,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh run download --name Reporte-Cobertura-TestGithub --dir docs/coverage
+          gh run download --name Reporte-Allure-TestGithub --dir docs/allure-report
 
       - name: Asegurar existencia de carpeta de cobertura para DocFX
         shell: powershell
@@ -67,10 +78,18 @@ jobs:
               Set-Content -Path "docs/coverage/index.html" -Value "<html><head><meta charset='utf-8'><title>Cobertura</title><style>body{font-family:sans-serif;text-align:center;padding:50px;color:#8b949e;background:#0d1117;}</style></head><body><h2>Reporte de Cobertura</h2><p>El reporte de cobertura se generará automáticamente en el próximo pase del flujo de Calidad y Pruebas.</p></body></html>" -Encoding utf8
           }
 
+      - name: Asegurar existencia de carpeta Allure para DocFX
+        shell: powershell
+        run: |
+          if (-not (Test-Path "docs/allure-report/index.html")) {
+              New-Item -ItemType Directory -Path "docs/allure-report" -Force | Out-Null
+              Set-Content -Path "docs/allure-report/index.html" -Value "<html><head><meta charset='utf-8'><title>Reporte Allure</title><style>body{font-family:sans-serif;text-align:center;padding:50px;color:#8b949e;background:#1e1e1e;}</style></head><body><h2>Reporte de Pruebas E2E (Allure)</h2><p>El reporte de pruebas E2E se generará automáticamente en el próximo pase del flujo de Pruebas E2E Android.</p></body></html>" -Encoding utf8
+          }
+
       - name: Restaurar herramientas locales (.NET Tools)
         run: dotnet tool restore
 
-      - name: Compilar sitio web con DocFX (incluyendo cobertura)
+      - name: Compilar sitio web con DocFX (incluyendo cobertura y Allure)
         run: dotnet docfx docs/docfx.json
 
       - name: Subir artefacto para GitHub Pages
