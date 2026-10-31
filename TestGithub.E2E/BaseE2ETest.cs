@@ -43,7 +43,7 @@ namespace TestGithub.E2E
             options.AddAdditionalAppiumOption("appium:appPackage", "com.companyname.testgithub");
             options.AddAdditionalAppiumOption("appium:appActivity", "crc645139d31f056161d8.MainActivity");
             options.AddAdditionalAppiumOption("appium:appWaitActivity", "*");
-            options.AddAdditionalAppiumOption("appium:noReset", true);
+            options.AddAdditionalAppiumOption("appium:noReset", false);
             options.AddAdditionalAppiumOption("appium:autoGrantPermissions", true);
             options.AddAdditionalAppiumOption("appium:newCommandTimeout", 120);
 
@@ -75,6 +75,15 @@ namespace TestGithub.E2E
             }
             finally
             {
+                try
+                {
+                    _ = Driver?.TerminateApp("com.companyname.testgithub");
+                }
+                catch
+                {
+                    // Ignorar si la app ya no estaba en ejecución
+                }
+
                 Driver?.Quit();
                 Driver?.Dispose();
                 Driver = null;

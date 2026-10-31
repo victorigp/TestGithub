@@ -85,23 +85,99 @@ Antes de arrancar el runner, la máquina debe tener instaladas las siguientes he
 * **Mantenimiento**: El equipo de Sistemas **no necesita instalar ni actualizar estas herramientas a nivel de sistema operativo**. Solo debe garantizar la conectividad con el repositorio de paquetes NuGet (`api.nuget.org` o el proxy/Nexus interno corporativo).
 
 ### 3.7. Herramientas para Pruebas E2E Android (Appium, Allure CLI y Emulador Android)
-* **Android SDK y Emulador**:
-  * Requiere el Android SDK (`platform-tools` con `adb.exe` y `emulator` con `emulator.exe`).
-  * Dispositivo virtual Android (AVD) configurado (por defecto: `seypos_scanmax_22d`).
-  * Variables de entorno: `ANDROID_HOME` y `ANDROID_SDK_ROOT` apuntando a la ruta del SDK (ej. `E:\Android_SDK`).
-* **Java Runtime**:
-  * Requerido por el motor de Allure CLI y el SDK de Android.
-  * Variable de entorno `JAVA_HOME` apuntando al JRE/JDK (ej. `E:\Android Studio\jbr`).
-* **Appium Server**:
-  * Instalado globalmente mediante Node.js: `npm install -g appium`.
-  * Controlador Android UiAutomator2 instalado: `appium driver install uiautomator2`.
-* **Allure CLI**:
-  * CLI para compilar los reportes visuales HTML de Allure a partir de los resultados JSON:
-    ```powershell
-    scoop install allure
-    # o mediante winget:
-    winget install Allure.Allure
-    ```
+
+Para que el runner self-hosted pueda ejecutar las pruebas funcionales de interfaz en la aplicación Android MAUI de forma autónoma y desatendida, deben instalarse y configurarse los siguientes componentes:
+
+#### 3.7.1. Java Runtime (JDK / JBR)
+* Requerido por el motor de **Allure CLI** y el SDK de Android.
+* Ubicación recomendada: `E:\Android Studio\jbr` (o `C:\Program Files\Java\jdk-xx`).
+* Variable de entorno del sistema requerida:
+  * `JAVA_HOME = E:\Android Studio\jbr` (agregando `%JAVA_HOME%\bin` al `PATH`).
+
+#### 3.7.2. Android SDK y Herramientas de Plataforma
+* Requiere el Android SDK con los paquetes `cmdline-tools`, `platform-tools` (`adb.exe`), `build-tools` y `emulator` (`emulator.exe`).
+* Variables de entorno requeridas:
+  * `ANDROID_HOME = E:\Android_SDK`
+  * `ANDROID_SDK_ROOT = E:\Android_SDK`
+  * Añadir al `PATH`: `%ANDROID_HOME%\platform-tools` y `%ANDROID_HOME%\emulator`.
+
+#### 3.7.3. Especificaciones del Emulador Android (AVD: `seypos_scanmax_22d`)
+El pipeline de pruebas E2E interactúa contra un dispositivo virtual Android representativo del hardware industrial objetivo (**SEYPOS ScanMax 22D**). El emulador en el servidor debe crearse con las siguientes especificaciones idénticas a las de desarrollo:
+
+| Parámetro | Valor Requerido | Observaciones |
+| :--- | :--- | :--- |
+| **Nombre del AVD (ID)** | `seypos_scanmax_22d` | Identificador utilizado por Appium y los scripts de CI |
+| **Nombre Mostrado** | `SEYPOS ScanMax 22D` | Nombre en interfaz gráfica de Android Studio |
+| **Versión de Android / API** | `Android 36 (Google APIs)` | Imagen del sistema `system-images;android-36;google_apis;x86_64` |
+| **Arquitectura de CPU / ABI** | `x86_64` | Alto rendimiento con virtualización Intel HAXM / Hyper-V (WHPX) |
+| **Resolución de Pantalla** | `720 x 1280` píxeles | Skin personalizada 720x1280 vertical |
+| **Densidad de Pantalla (DPI)** | `290 dpi` | Densidad exacta del escáner industrial |
+| **Memoria RAM** | `4000 MB` (4 GB) | Evita cierres por falta de memoria en ejecución MAUI |
+| **VM Heap** | `256 MB` | Tamaño del heap de la máquina virtual |
+| **Partición de Datos / Disco** | `6 GB` (`6442450944` bytes) | Almacenamiento suficiente para APKs y datos de prueba |
+| **Tarjeta SD Virtual** | `512 MB` | Almacenamiento externo simulado |
+| **Núcleos de CPU** | `4 cores` | Asignación de hilos de emulación |
+| **Aceleración GPU** | `Hardware - GLES 2.0 / Auto` | Renderizado rápido de interfaz gráfica |
+
+#### 3.7.4. Script para Creación del Emulador (PowerShell - Sistemas)
+El equipo de Sistemas puede crear este emulador de forma 100% desatendida mediante PowerShell:
+
+```powershell
+# 1. Instalar la imagen del sistema Android 36 Google APIs (x86_64)
+& "$env:ANDROID_HOME\cmdline-tools\latest\bin\sdkmanager.bat" "system-images;android-36;google_apis;x86_64"
+
+# 2. Crear el dispositivo AVD
+& "$env:ANDROID_HOME\cmdline-tools\latest\bin\avdmanager.bat" create avd `
+    --name "seypos_scanmax_22d" `
+    --package "system-images;android-36;google_apis;x86_64" `
+    --device "pixel" `
+    --force
+
+# 3. Aplicar los parámetros de hardware específicos en su archivo config.ini
+$avdConfigPath = "$env:USERPROFILE\.android\avd\seypos_scanmax_22d.avd\config.ini"
+$configOverrides = @(
+    "avd.ini.displayname=SEYPOS ScanMax 22D",
+    "hw.lcd.width=720",
+    "hw.lcd.height=1280",
+    "hw.lcd.density=290",
+    "hw.ramSize=4000",
+    "vm.heapSize=256",
+    "hw.cpu.ncore=4",
+    "hw.gpu.enabled=yes",
+    "hw.gpu.mode=auto",
+    "disk.dataPartition.size=6442450944",
+    "sdcard.size=512M",
+    "showDeviceFrame=no"
+)
+$configOverrides | Out-File -FilePath $avdConfigPath -Encoding utf8 -Append
+```
+
+#### 3.7.5. Appium Server
+* Instalado globalmente mediante Node.js:
+  ```powershell
+  npm install -g appium
+  ```
+* Controlador Android UiAutomator2 instalado en Appium:
+  ```powershell
+  appium driver install uiautomator2
+  ```
+* Comprobación:
+  ```powershell
+  appium driver list
+  # Debe figurar: uiautomator2 [installed]
+  ```
+
+#### 3.7.6. Allure CLI
+* Herramienta de línea de comandos para generar el sitio web HTML estático a partir de los artefactos JSON de prueba:
+  ```powershell
+  scoop install allure
+  # o mediante winget:
+  winget install Allure.Allure
+  ```
+* Comprobación:
+  ```powershell
+  allure --version
+  ```
 
 ---
 

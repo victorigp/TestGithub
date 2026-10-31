@@ -28,8 +28,13 @@ _disableAffix: true
     margin: 0 !important;
   }
 
-  /* 4. Iframe a pantalla completa de borde a borde (Edge-to-Edge) */
+  /* 4. Iframe a pantalla completa anclado bajo la barra superior (Edge-to-Edge) */
   .coverage-frame {
+    position: fixed !important;
+    top: 50px !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
     width: 100vw !important;
     height: calc(100vh - 50px) !important;
     border: none !important;
@@ -37,6 +42,7 @@ _disableAffix: true
     margin: 0 !important;
     padding: 0 !important;
     background-color: #222222 !important;
+    z-index: 1 !important;
   }
 </style>
 
